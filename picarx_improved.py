@@ -124,6 +124,7 @@ def forward(speed):
     global servo_angle
     d = 3.75
     a = 2.25
+    print("Trying to move forward!")
     if servo_angle == 0.0:
         set_motor_speed(1, -1*speed)
         set_motor_speed(2, -1*speed)

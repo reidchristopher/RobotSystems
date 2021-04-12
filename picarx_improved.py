@@ -117,8 +117,7 @@ def set_power(speed):
     set_motor_speed(2, speed) 
 
 def backward(speed):
-    set_motor_speed(1, speed)
-    set_motor_speed(2, speed)
+    forward(-speed)
 
 def forward(speed):
     global servo_angle

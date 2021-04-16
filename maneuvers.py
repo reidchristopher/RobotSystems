@@ -1,6 +1,7 @@
 from picarx_improved import *
 
 def forward_and_backward(angle):
+    print("Moving forward and back at %.2d degree angle" % angle)
     speed = 50
     t = 1.5
     
@@ -15,6 +16,8 @@ def forward_and_backward(angle):
     stop()
     
 def parallel_park(direction):
+    print("Doing parallel park in %s direction" % direction)
+    
     speed = 50
     angle_sign = -1 if direction == "l" else 1
     
@@ -42,6 +45,7 @@ def parallel_park(direction):
     stop()
     
 def three_point_turn(direction):
+    print("Doing k turn in %s direction" % direction)
     
     speed = 50
     angle_sign = -1 if direction == "l" else 1
@@ -69,15 +73,49 @@ def three_point_turn(direction):
     
 def main():
     
-    forward_and_backward(0.0)
-    forward_and_backward(30.0)
-    forward_and_backward(-30.0)
+    def input_is_valid(i):
+        return i == "f" or i == "p" or i =="k" or i == "q"
     
-    parallel_park("l")
-    parallel_park("r")
     
-    three_point_turn("l")
-    three_point_turn("r")
+    while True:
+        command = ""
+        while not input_is_valid(command):
+            command = input("--------------------------------------------\n"
+                            "What would you like the car to do?\n"
+                            "Move (f)orward and backwards?\n"
+                            "Do a (p)arallel parking maneuver?\n"
+                            "Make a (k)-turn?\n" 
+                            "\n"
+                            "(f, p, or k for motion, q to quit)\n"
+                            "--------------------------------------------\n")
+            command = command.lower()
+            
+            
+        if command == "q":
+            break
+        elif command == "f":
+            limit = 45
+            err_str = "Please enter a valid number between %d and %d" % (-limit, limit)
+            angle = None
+            while angle is None:
+                try:
+                    angle = float(input("Enter desired steering angle: "))
+                    if abs(angle) > limit:
+                        angle = None
+                        print(err_str)
+                except ValueError:
+                    print(err_str)
+
+            forward_and_backward(angle)
+        else:
+            direction = ""
+            while direction != "l" and direction != "r":
+                direction = input("Maneuver (l)eft or (r)ight? ")
+                
+            if command == "p":
+                parallel_park(direction)
+            elif command == "k":
+                three_point_turn(direction)
     
 if __name__ == "__main__":
     main()

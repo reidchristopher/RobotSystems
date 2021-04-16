@@ -5,6 +5,7 @@ except ImportError :
     (/ opt / ezblock is not present ) . Shadowing hardware calls
     with substitute functions """)
     from sim_ezblock import *
+import math
 import time
 
 

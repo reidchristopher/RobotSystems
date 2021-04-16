@@ -6,7 +6,7 @@ def forward_and_backward(controller, angle):
     speed = 50
     t = 1.5
     
-    controller.set_dir_servo_angle(angle)
+    controller.set_steering_angle(angle)
     time.sleep(0.5)
     
     controller.forward(speed)
@@ -22,23 +22,23 @@ def parallel_park(controller, direction):
     speed = 50
     angle_sign = -1 if direction == "l" else 1
     
-    controller.set_dir_servo_angle(0.0)
+    controller.set_steering_angle(0.0)
     time.sleep(0.5)
     
     controller.forward(speed)
     time.sleep(1.0)
     controller.stop()
     
-    controller.set_dir_servo_angle(angle_sign * 20.0)
+    controller.set_steering_angle(angle_sign * 20.0)
     controller.backward(speed)
     time.sleep(1.0)
     
-    controller.set_dir_servo_angle(-angle_sign * 20.0)
+    controller.set_steering_angle(-angle_sign * 20.0)
     controller.backward(speed)
     time.sleep(1.0)
     controller.stop()
     
-    controller.set_dir_servo_angle(0.0)
+    controller.set_steering_angle(0.0)
     time.sleep(0.5)
     
     controller.forward(speed)
@@ -51,21 +51,21 @@ def three_point_turn(controller, direction):
     speed = 50
     angle_sign = -1 if direction == "l" else 1
     
-    controller.set_dir_servo_angle(angle_sign * 30.0)
+    controller.set_steering_angle(angle_sign * 30.0)
     time.sleep(0.1)
     
     controller.forward(speed)
     time.sleep(1.0)
     controller.stop()
     
-    controller.set_dir_servo_angle(-angle_sign * 30.0)
+    controller.set_steering_angle(-angle_sign * 30.0)
     time.sleep(0.1)
     
     controller.backward(speed)
     time.sleep(1.0)
     controller.stop()
     
-    controller.set_dir_servo_angle(angle_sign * 30.0)
+    controller.set_steering_angle(angle_sign * 30.0)
     time.sleep(0.1)
     
     controller.forward(speed)

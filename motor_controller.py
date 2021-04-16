@@ -18,7 +18,7 @@ class MotorController:
         self.PRESCALER = 10
         self.TIMEOUT = 0.02
 
-        self.dir_servo_pin = Servo(PWM('P2'))
+        self.steering_servo_pin = Servo(PWM('P2'))
         self.camera_servo_pin1 = Servo(PWM('P0'))
         self.camera_servo_pin2 = Servo(PWM('P1'))
         self.left_rear_pwm_pin = PWM("P13")
@@ -77,14 +77,13 @@ class MotorController:
         if value == 1:
             self.cali_dir_value[motor] = -1*self.cali_dir_value[motor]
 
-
-    def dir_servo_angle_calibration(self, value):
+    def steering_servo_angle_calibration(self, value):
         self.dir_cal_value = value
-        self.set_dir_servo_angle(self.dir_cal_value)
+        self.set_steering_angle(self.dir_cal_value)
 
-    def set_dir_servo_angle(self, value):
+    def set_steering_angle(self, value):
         self.servo_angle = value+self.dir_cal_value
-        self.dir_servo_pin.angle(value+self.dir_cal_value)
+        self.steering_servo_pin.angle(value+self.dir_cal_value)
 
     def camera_servo1_angle_calibration(self, value):
         self.cam_cal_value_1 = value

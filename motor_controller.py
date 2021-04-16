@@ -1,13 +1,21 @@
+
+import time
+import math
+import atexit
 try :
     from ezblock import *
+    import sys
+    sys.path.append(r'/opt/ezblock')
+    from ezblock import __reset_mcu__
+    __reset_mcu__()
+    time.sleep(0.01)
 except ImportError :
     print (""" This computer does not appear to be a PiCar - X system
     (/ opt / ezblock is not present ) . Shadowing hardware calls
     with substitute functions """)
     from sim_ezblock import *
-import math
-import time
-import atexit
+
+
 
 
 class MotorController:

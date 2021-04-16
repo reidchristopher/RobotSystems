@@ -27,17 +27,18 @@ def parallel_park(direction):
     
     set_dir_servo_angle(angle_sign * 20.0)
     backward(speed)
-    time.sleep(0.5)
+    time.sleep(1.0)
     
     set_dir_servo_angle(-angle_sign * 20.0)
     backward(speed)
-    time.sleep(0.5)
+    time.sleep(1.0)
+    stop()
     
     set_dir_servo_angle(0.0)
     time.sleep(0.5)
     
     forward(speed)
-    time.sleep(0.5)
+    time.sleep(0.75)
     stop()
     
 def three_point_turn(direction):

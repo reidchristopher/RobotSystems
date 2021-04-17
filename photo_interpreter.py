@@ -1,24 +1,10 @@
-try :
-    from ezblock import *
-    import sys
-    sys.path.append(r'/opt/ezblock')
-    from ezblock import __reset_mcu__
-    __reset_mcu__()
-    time.sleep(0.01)
-except ImportError :
-    print (""" This computer does not appear to be a PiCar - X system
-    (/ opt / ezblock is not present ) . Shadowing hardware calls
-    with substitute functions """)
-    from sim_ezblock import *
-    
-from photo_sensor import PhotoSensor
 import numpy as np
     
 class PhotoInterpreter:
     
     def __init__(self, sensitivity=0.01, polarity=1):
         
-        # positive polarity for brighter background, negative polarity for darker background
+        # positive polarity for brighter line, negative polarity for darker line
         if polarity != 1 or polarity != -1:
             raise ValueError("PhotoInterpreter polarity must equal +1 or -1")
         
@@ -36,7 +22,7 @@ class PhotoInterpreter:
         # positive slope means brighter to the right side
         slope = np.polyfit([0, 1, 2], adc_outputs, 1)[0]
         
-        # positive value means line is to the left
+        # positive value means line is to the right
         value = slope * self.sensitivity * self.polarity
         
         value = np.clip(value, -1, 1)

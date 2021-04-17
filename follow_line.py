@@ -7,24 +7,26 @@ import time
 def follow_line():
     
     sensor = PhotoSensor()
-    interpreter = PhotoInterpreter(sensitivity=0.01, polarity=1)
-    steering_controller = PhotoSteeringControl(p_gain=1)
+    interpreter = PhotoInterpreter(sensitivity=5e-3, polarity=1)
+    steering_controller = PhotoSteeringControl(p_gain=30)
     
     motor_controller = MotorController()
     
     while True:
         
         # move forward
-        motor_controller.forward(30)
+        motor_controller.forward(20)
         
         # get sensor values
         adc_values = sensor.get_adc_values()
         
         # interpret sensor values
         line_position = interpreter.get_position(adc_values)
+        print("Line position", line_position)
         
         # adjust steering
-        steering_controller.adjust_steering(line_position)
+        steering_angle = steering_controller.adjust_steering(line_position)
+        
         
         # pause for a short time
         time.sleep(0.1)

@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import numpy.matlib
 
 class ImageInterpreter:
     
@@ -18,22 +19,24 @@ class ImageInterpreter:
         
         mask = cv2.inRange(hsv, self.lower_blue, self.upper_blue)
         
-        edges = cv2.Canny(mask, 200, 400)
+        # edges = cv2.Canny(mask, 200, 400)
         
-        crop = np.zeros_like(edges)
+        crop = np.zeros_like(mask)
         crop[y_size//2:, :] = 255
         
-        cropped = cv2.bitwise_and(edges, crop)
-        
-        x = 0
-        y = 0
-        count = np.sum(cropped)
-        for i, row in enumerate(cropped):
-            for j, pixel in enumerate(row):
-                x += j / count * pixel
-                y += i / count * pixel
-                
-        return x / x_size - 0.5
+        cropped = cv2.bitwise_and(mask, crop)
+
+        x_vals = np.linspace(-1, 1, num=x_size)
+        x_vals = numpy.matlib.repmat(x_vals, y_size, 1)
+        # print(x_vals.shape, hsv.shape)
+        # print(np.max(cropped))
+        print(x_vals)
+
+        final_mask = cropped == 255
+
+        return np.sum(x_vals * final_mask) / np.sum(final_mask)
+
+        # return 0 #x / x_size - 0.5
         
         # rho = 1  # distance precision in pixel, i.e. 1 pixel
         # angle = np.pi / 180  # angular precision in radian, i.e. 1 degree

@@ -1,6 +1,6 @@
-from Image_sensor import ImageSensor
-from Image_interpreter import ImageInterpreter
-from Image_steering_controller import ImageSteeringControl
+from image_sensor import ImageSensor
+from image_interpreter import ImageInterpreter
+from image_steering_controller import ImageSteeringControl
 from motor_controller import MotorController
 import time
 
@@ -16,10 +16,10 @@ def follow_line():
         
         # move forward
         motor_controller.forward(20)
-        
+        print("getting image")
         # get sensor values
-        adc_values = sensor.get_image()
-        
+        image = sensor.get_image()
+        print("interpreting image")
         # interpret sensor values
         line_position = interpreter.get_position(image)
         print("Line position", line_position)

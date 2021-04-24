@@ -1,6 +1,6 @@
 from motor_controller import MotorController
     
-class PhotoSteeringControl:
+class ImageSteeringControl:
     
     def __init__(self, p_gain):
         

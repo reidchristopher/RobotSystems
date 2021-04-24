@@ -15,9 +15,6 @@ except ImportError :
     with substitute functions """)
     from sim_ezblock import *
 
-
-
-
 class MotorController:
     
     def __init__(self):

@@ -84,7 +84,7 @@ def follow_line():
         
         # interpret sensor values
         line_position = interpreter.get_position(adc_values)
-        print("Line position", line_position)
+        print("Line position: %.2f" % line_position)
         
         # adjust steering
         steering_angle = steering_controller.adjust_steering(line_position)

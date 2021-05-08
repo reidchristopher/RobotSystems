@@ -12,11 +12,9 @@ except ImportError :
     from sim_ezblock import *
 
 from motor_controller import MotorController
-import time
 
-import cv2
+import time
 import numpy as np
-import numpy.matlib
 
 import concurrent.futures
 from threading import Lock
@@ -89,9 +87,9 @@ class SteeringController:
         return steering_angle
 
 def follow_line():
-    
+
     timer_bus = rossros.Bus(initial_message=False)
-    timer = rossros.Timer(timer_bus, duration=5, termination_busses=timer_bus, name="Termination Timer")
+    timer = rossros.Timer(timer_bus, duration=5, delay=0.25, termination_busses=timer_bus, name="Termination Timer")
     
     sensor = PhotoSensor()
     interpreter = PhotoInterpreter()
@@ -100,10 +98,10 @@ def follow_line():
     sensor_value_bus = rossros.Bus()
     interpretation_value_bus = rossros.Bus()
     
-    sensor_producer = rossros.Producer(sensor.get_adc_values, sensor_value_bus, termination_busses=timer_bus, name="Sensor Producer")
-    interpretation_consumer_producer = rossros.ConsumerProducer(interpreter.get_position, sensor_value_bus, interpretation_value_bus, 
+    sensor_producer = rossros.Producer(sensor.get_adc_values, sensor_value_bus, delay=0.05, termination_busses=timer_bus, name="Sensor Producer")
+    interpretation_consumer_producer = rossros.ConsumerProducer(interpreter.get_position, sensor_value_bus, interpretation_value_bus, delay=0.05,
                                                                 termination_busses=timer_bus, name="Interpretation Consumer-Producer")
-    controller_consumer = rossros.Consumer(steering_controller.adjust_steering, interpretation_value_bus, termination_busses=timer_bus, 
+    controller_consumer = rossros.Consumer(steering_controller.adjust_steering, interpretation_value_bus, delay=0.1, termination_busses=timer_bus,
                                            name="Steering controller consumer")
     
     motor_controller = MotorController()

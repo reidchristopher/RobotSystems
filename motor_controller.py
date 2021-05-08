@@ -1,7 +1,7 @@
-
 import time
 import math
 import atexit
+from threading import Lock
 try :
     from ezblock import *
     import sys
@@ -138,4 +138,6 @@ class MotorController:
         self.set_motor_speed(2, 0)
 
     def cleanup(self):
-        self.stop()
+        lock = Lock()
+        with lock:
+            self.stop()

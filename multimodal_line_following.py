@@ -93,8 +93,7 @@ class DistanceSensor:
         self.sensor = Ultrasonic(Pin("D0"), Pin("D1"))
     
     def get_distance(self):
-        
-        return self.sensor.read()
+        return dist
     
 class DistanceInterpreter:
     
@@ -114,12 +113,10 @@ class SpeedController:
         self.controller = controller
     
     def adjust_speed(self, object_close):
-        lock = Lock()
-        with lock:
-            if object_close:
-                self.controller.stop()
-            else:
-                self.controller.forward(20)
+        if object_close:
+            self.controller.stop()
+        else:
+            self.controller.forward(20)
 
 def follow_line():
 
@@ -146,16 +143,16 @@ def follow_line():
     
     # create distance sensor, interpreter, controller items, busses, and producer, consumer-producer, consumer items
     distance_sensor = DistanceSensor()
-    distance_interpreter = DistanceInterpreter(5) # 5 cm stopping distance
+    distance_interpreter = DistanceInterpreter(10) # 5 cm stopping distance
     speed_controller = SpeedController(motor_controller)
     
     distance_sensor_bus = rossros.Bus()
     distance_interpretation_bus = rossros.Bus()
     
-    distance_sensor_producer = rossros.Producer(distance_sensor.get_distance, distance_sensor_bus, delay=0.1, termination_busses=timer_bus, 
+    distance_sensor_producer = rossros.Producer(distance_sensor.get_distance, distance_sensor_bus, delay=0.05, termination_busses=timer_bus, 
                                                 name="Distance Sensor Producer")
     distance_interpretation_consumer_producer = rossros.ConsumerProducer(distance_interpreter.is_object_close, distance_sensor_bus, distance_interpretation_bus,
-                                                                         delay=0.1, termination_busses=timer_bus, name="Distance Interpretation Consumer Producer")
+                                                                         delay=0.05, termination_busses=timer_bus, name="Distance Interpretation Consumer Producer")
     speed_controller_consumer = rossros.Consumer(speed_controller.adjust_speed, distance_interpretation_bus, delay=0.1, termination_busses=timer_bus,
                                                    name="Speed controller consumer")
     

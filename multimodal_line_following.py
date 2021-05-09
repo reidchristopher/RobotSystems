@@ -72,11 +72,11 @@ class PhotoInterpreter:
             
 class SteeringController:
     
-    def __init__(self, p_gain):
+    def __init__(self, controller, p_gain):
         
         self.p_gain = p_gain
         
-        self.controller = MotorController()
+        self.controller = controller
         
     def adjust_steering(self, line_position_value):
         
@@ -85,35 +85,92 @@ class SteeringController:
         self.controller.set_steering_angle(steering_angle)
         
         return steering_angle
+    
+class DistanceSensor:
+    
+    def __init__(self):
+        
+        self.sensor = Ultrasonic(Pin("D0"), Pin("D1"))
+    
+    def get_distance(self):
+        
+        return self.sensor.read()
+    
+class DistanceInterpreter:
+    
+    # distance threshold is distance under which the car stops (in cm)
+    def __init__(self, dist_threshold):
+        
+        self.dist_threshold = dist_threshold
+        
+    def is_object_close(self, dist):
+        
+        return dist < self.dist_threshold
+    
+class SpeedController:
+    
+    def __init__(self, controller):
+        
+        self.controller = controller
+    
+    def adjust_speed(self, object_close):
+        
+        if object_close:
+            self.controller.stop()
+        else:
+            self.controller.forward(20)
 
 def follow_line():
 
+    # create timer bus and producer
     timer_bus = rossros.Bus(initial_message=False)
     timer = rossros.Timer(timer_bus, duration=5, delay=0.25, termination_busses=timer_bus, name="Termination Timer")
     
-    sensor = PhotoSensor()
-    interpreter = PhotoInterpreter()
-    steering_controller = SteeringController(p_gain=30)
-    
-    sensor_value_bus = rossros.Bus()
-    interpretation_value_bus = rossros.Bus()
-    
-    sensor_producer = rossros.Producer(sensor.get_adc_values, sensor_value_bus, delay=0.05, termination_busses=timer_bus, name="Sensor Producer")
-    interpretation_consumer_producer = rossros.ConsumerProducer(interpreter.get_position, sensor_value_bus, interpretation_value_bus, delay=0.05,
-                                                                termination_busses=timer_bus, name="Interpretation Consumer-Producer")
-    controller_consumer = rossros.Consumer(steering_controller.adjust_steering, interpretation_value_bus, delay=0.1, termination_busses=timer_bus,
-                                           name="Steering controller consumer")
-    
+    # create controller class for motor functions
     motor_controller = MotorController()
     
-    # move forward
-    motor_controller.forward(20)
+    # create photo sensor, interpreter, controller items, busses, and producer, consumer-producer, consumer items
+    photo_sensor = PhotoSensor()
+    photo_interpreter = PhotoInterpreter(sensitivity=3e-3)
+    steering_controller = SteeringController(motor_controller, p_gain=30)
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-        e_sensor = executor.submit(sensor_producer)
-        e_interpreter = executor.submit(interpretation_consumer_producer)
-        e_controller = executor.submit(controller_consumer)
+    photo_sensor_bus = rossros.Bus()
+    photo_interpretation_bus = rossros.Bus()
+    
+    photo_sensor_producer = rossros.Producer(photo_sensor.get_adc_values, photo_sensor_bus, delay=0.05, termination_busses=timer_bus, name="Photo Sensor Producer")
+    photo_interpretation_consumer_producer = rossros.ConsumerProducer(photo_interpreter.get_position, photo_sensor_bus, photo_interpretation_bus, 
+                                                                      delay=0.05, termination_busses=timer_bus, name="Photo Interpretation Consumer-Producer")
+    steering_controller_consumer = rossros.Consumer(steering_controller.adjust_steering, photo_interpretation_bus, delay=0.1, termination_busses=timer_bus,
+                                           name="Steering controller consumer")
+    
+    # create distance sensor, interpreter, controller items, busses, and producer, consumer-producer, consumer items
+    distance_sensor = DistanceSensor()
+    distance_interpreter = DistanceInterpreter(5) # 5 cm stopping distance
+    speed_controller = SpeedController(motor_controller)
+    
+    distance_sensor_bus = rossros.Bus()
+    distance_interpretation_bus = rossros.Bus()
+    
+    distance_sensor_producer = rossros.Producer(distance_sensor.get_distance, distance_sensor_bus, delay=0.1, termination_busses=timer_bus, 
+                                                name="Distance Sensor Producer")
+    distance_interpretation_consumer_producer = rossros.ConsumerProducer(distance_interpreter.is_object_close, distance_sensor_bus, distance_interpretation_bus,
+                                                                         delay=0.1, termination_busses=timer_bus, name="Distance Interpretation Consumer Producer")
+    speed_controller_consumer = rossros.Consumer(speed_controller.adjust_speed, distance_interpretation_bus, delay=0.1, termination_busses=timer_bus,
+                                                   name="Speed controller consumer")
+    
+    # execute threads
+    with concurrent.futures.ThreadPoolExecutor(max_workers=7) as executor:
+        # start steering control threads
+        e_photo_sensor = executor.submit(photo_sensor_producer)
+        e_photo_interpreter = executor.submit(photo_interpretation_consumer_producer)
+        e_steering_controller = executor.submit(steering_controller_consumer)
         
+        # starts speed control (braking or not) threads
+        e_distance_sensor = executor.submit(distance_sensor_producer)
+        e_distance_interpreter = executor.submit(distance_interpretation_consumer_producer)
+        e_speed_controller = executor.submit(speed_controller_consumer)
+        
+        # start termination timer thread
         e_timer = executor.submit(timer)
     
         

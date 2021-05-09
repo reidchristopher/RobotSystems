@@ -114,11 +114,12 @@ class SpeedController:
         self.controller = controller
     
     def adjust_speed(self, object_close):
-        
-        if object_close:
-            self.controller.stop()
-        else:
-            self.controller.forward(20)
+        lock = Lock()
+        with lock:
+            if object_close:
+                self.controller.stop()
+            else:
+                self.controller.forward(20)
 
 def follow_line():
 

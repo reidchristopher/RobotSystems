@@ -105,7 +105,7 @@ class DistanceInterpreter:
         
     def is_object_close(self, dist):
         
-        return dist < self.dist_threshold
+        return dist < self.dist_threshold and dist > 0
     
 class SpeedController:
     

@@ -2,7 +2,6 @@
 # coding=utf8
 import sys
 
-from numpy.lib.function_base import disp
 sys.path.append('/home/pi/ArmPi/')
 import cv2
 import time
@@ -37,7 +36,6 @@ class Perception:
         self.get_roi = False
         self.center_list = []
         self.target_color = None
-        self.unreachable = False
         self.detect_color = None
         self.action_finish = True
         self.rotation_angle = None
@@ -140,14 +138,24 @@ class Perception:
         
         area_max = 0
         areaMaxContour = 0
+        self.detect_color = "None"
+        draw_color = "black"
         if not self.start_pick_up:
             for color in color_range:
                 if color in self.target_color:
-                    self.detect_color = color
                     areaMaxContour, area_max = self.find_largest_area(img_lab, color)
                     
+                    # maximize over the different colors
+                    if areaMaxContour is not None:
+                        if area_max > max_area:
+                            max_area = area_max
+                            self.detect_color = color
+                            draw_color = color
+                            areaMaxContour_max = areaMaxContour
             if area_max > 2500:  # check if the area is large enough to indicate we found a block
-                world_x, world_y = self.get_world_location(areaMaxContour, display_img=img)
+                world_x, world_y = self.get_world_location(areaMaxContour_max, display_img=img)
+                
+                cv2.putText(img, "Color: " + self.detect_color, (10, img.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.65, draw_color, 2)
                 
                 # distance = math.sqrt(pow(world_x - self.last_x, 2) + pow(world_y - self.last_y, 2)) # see if the object has moved since last time
                 # self.last_x, self.last_y = world_x, world_y
@@ -183,7 +191,7 @@ def main():
     my_camera = Camera.Camera()
     my_camera.camera_open()
     perception = Perception()
-    perception.target_color = ("red",)
+    perception.target_color = ("red", "blue", "green")
     while True:
         img = my_camera.frame
         if img is not None:

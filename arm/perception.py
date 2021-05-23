@@ -8,7 +8,7 @@ import cv2
 import time
 import threading
 from LABConfig import color_range
-from ArmIK.Transform import getMaskROI, getROI, getCenter, convertCoordinate, 
+from ArmIK.Transform import getMaskROI, getROI, getCenter, convertCoordinate
 from CameraCalibration.CalibrationConfig import square_length
 import numpy as np
 import math
@@ -142,7 +142,7 @@ class Perception:
         areaMaxContour = 0
         if not self.start_pick_up:
             for color in color_range:
-                if color in self.__target_color:
+                if color in self.target_color:
                     self.detect_color = color
                     areaMaxContour, area_max = self.find_largest_area(img_lab, color)
                     
@@ -189,7 +189,7 @@ def main():
         if img is not None:
             img_copy = img.copy()
             display_img = perception.run(img_copy)
-            cv2.imshow(display_img)
+            cv2.imshow('Frame', display_img)
             key = cv2.waitKey(1)
             if key == 27:
                 break

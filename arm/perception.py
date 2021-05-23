@@ -136,26 +136,25 @@ class Perception:
         # preprocess the image
         img_lab = self.preprocess_image(img_copy)
         
-        area_max = 0
-        areaMaxContour = 0
+        max_area_max = 0
+        areaMaxContour_max = 0
         self.detect_color = "None"
         draw_color = "black"
         if not self.start_pick_up:
             for color in color_range:
                 if color in self.target_color:
                     areaMaxContour, area_max = self.find_largest_area(img_lab, color)
-                    
                     # maximize over the different colors
                     if areaMaxContour is not None:
-                        if area_max > max_area:
-                            max_area = area_max
+                        if area_max > max_area_max:
+                            areaMaxContour_max = areaMaxContour
+                            max_area_max = area_max
                             self.detect_color = color
                             draw_color = color
-                            areaMaxContour_max = areaMaxContour
-            if area_max > 2500:  # check if the area is large enough to indicate we found a block
+            if max_area_max > 2500:  # check if the area is large enough to indicate we found a block
                 world_x, world_y = self.get_world_location(areaMaxContour_max, display_img=img)
                 
-                cv2.putText(img, "Color: " + self.detect_color, (10, img.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.65, draw_color, 2)
+                cv2.putText(img, "Color: " + self.detect_color, (10, img.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.65, self.range_rgb[draw_color], 2)
                 
                 # distance = math.sqrt(pow(world_x - self.last_x, 2) + pow(world_y - self.last_y, 2)) # see if the object has moved since last time
                 # self.last_x, self.last_y = world_x, world_y

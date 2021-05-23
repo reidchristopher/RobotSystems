@@ -30,20 +30,10 @@ class Perception:
         
         self.size = (640, 480)
         self.roi = None
-        self.rect = None
-        self.count = 0
-        self.track = False
         self.get_roi = False
-        self.center_list = []
         self.target_color = None
-        self.detect_color = None
-        self.action_finish = True
-        self.rotation_angle = None
-        self.last_x, last_y = 0, 0
-        self.world_X, world_Y = 0, 0
-        self.world_x, world_y = 0, 0
-        self.start_count_t1, t1 = True, None
-        self.start_pick_up, first_move = False, False
+        self.detected_color = None
+        self.start_pick_up = False
         
     def draw_calibration_lines(self, img):
         
@@ -72,7 +62,7 @@ class Perception:
         frame_gb = self.apply_blur(frame_resize)
         
         # if we already detected an object somewhere, we'll only look in that area until we can't find it anymore
-        if self.get_roi and self.start_pick_up:
+        if self.get_roi and not self.start_pick_up:
             self.get_roi = False
             frame_gb = self.apply_ROI_mask(frame_gb) 
         
@@ -119,15 +109,15 @@ class Perception:
         
         if display_img is not None:
              # draw contour
-            cv2.drawContours(display_img, [box], -1, self.range_rgb[self.detect_color], 2)
+            cv2.drawContours(display_img, [box], -1, self.range_rgb[self.detected_color], 2)
             
             # draw center point
             cv2.putText(display_img, '(' + str(world_x) + ',' + str(world_y) + ')', (min(box[0, 0], box[2, 0]), box[2, 1] - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.range_rgb[self.detect_color], 1) 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.range_rgb[self.detected_color], 1) 
         
         return world_x, world_y
         
-    def run(self, img):
+    def get_block_location(self, img):
         
         # make a copy of the image and draw calibration lines
         img_copy = img.copy()
@@ -138,8 +128,9 @@ class Perception:
         
         max_area_max = 0
         areaMaxContour_max = 0
-        self.detect_color = "None"
+        self.detected_color = "None"
         draw_color = "black"
+        world_x, world_y = None, None
         if not self.start_pick_up:
             for color in color_range:
                 if color in self.target_color:
@@ -149,40 +140,14 @@ class Perception:
                         if area_max > max_area_max:
                             areaMaxContour_max = areaMaxContour
                             max_area_max = area_max
-                            self.detect_color = color
+                            self.detected_color = color
                             draw_color = color
             if max_area_max > 2500:  # check if the area is large enough to indicate we found a block
                 world_x, world_y = self.get_world_location(areaMaxContour_max, display_img=img)
                 
-                cv2.putText(img, "Color: " + self.detect_color, (10, img.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.65, self.range_rgb[draw_color], 2)
-                
-                # distance = math.sqrt(pow(world_x - self.last_x, 2) + pow(world_y - self.last_y, 2)) # see if the object has moved since last time
-                # self.last_x, self.last_y = world_x, world_y
-                # self.track = True
-                # # print(count,distance)
-                
-                # # make the final decision about whether to move
-                # if self.action_finish:
-                #     if distance < 0.3: # if the object has not moved very far, add location to list
-                #         self.center_list.extend((world_x, world_y))
-                #         self.count += 1
-                #         if self.start_count_t1:
-                #             self.start_count_t1 = False
-                #             t1 = time.time()
-                #         # if the object has stayed tracked for over a second and a half, start pickup
-                #         if time.time() - t1 > 1.5: 
-                #             self.rotation_angle = rect[2]
-                #             self.start_count_t1 = True
-                #             self.world_X, self.world_Y = np.mean(np.array(self.center_list).reshape(self.count, 2), axis=0)
-                #             self.count = 0
-                #             self.center_list = []
-                #             self.start_pick_up = True
-                #     else: # if object has moved, restart location list
-                #         t1 = time.time()
-                #         self.start_count_t1 = True
-                #         self.count = 0
-                #         self.center_list = []
-        return img
+        cv2.putText(img, "Color: " + self.detected_color, (10, img.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.65, self.range_rgb[draw_color], 2)
+            
+        return world_x, world_y
     
 def main():
     
@@ -194,8 +159,8 @@ def main():
     while True:
         img = my_camera.frame
         if img is not None:
-            img_copy = img.copy()
-            display_img = perception.run(img_copy)
+            display_img = img.copy()
+            world_x, world_y = perception.get_block_location(display_img)
             cv2.imshow('Frame', display_img)
             key = cv2.waitKey(1)
             if key == 27:

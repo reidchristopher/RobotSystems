@@ -99,6 +99,7 @@ class Perception:
     def get_world_location(self, contour, display_img=None):
         
         rect = cv2.minAreaRect(contour)
+        rotation_angle = rect[2]
         box = np.int0(cv2.boxPoints(rect))
 
         self.roi = getROI(box) # get the area of the region of interest
@@ -115,7 +116,7 @@ class Perception:
             cv2.putText(display_img, '(' + str(world_x) + ',' + str(world_y) + ')', (min(box[0, 0], box[2, 0]), box[2, 1] - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.range_rgb[self.detected_color], 1) 
         
-        return world_x, world_y
+        return world_x, world_y, rotation_angle
         
     def get_block_location(self, img):
         
@@ -130,7 +131,7 @@ class Perception:
         areaMaxContour_max = 0
         self.detected_color = "None"
         draw_color = "black"
-        world_x, world_y = None, None
+        world_x, world_y, rotation = None, None, None
         if not self.start_pick_up:
             for color in color_range:
                 if color in self.target_color:
@@ -143,24 +144,25 @@ class Perception:
                             self.detected_color = color
                             draw_color = color
             if max_area_max > 2500:  # check if the area is large enough to indicate we found a block
-                world_x, world_y = self.get_world_location(areaMaxContour_max, display_img=img)
+                world_x, world_y, rotation = self.get_world_location(areaMaxContour_max, display_img=img)
                 
         cv2.putText(img, "Color: " + self.detected_color, (10, img.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.65, self.range_rgb[draw_color], 2)
             
-        return world_x, world_y
+        return world_x, world_y, rotation, self.detected_color
     
 def main():
     
     import Camera
     my_camera = Camera.Camera()
     my_camera.camera_open()
+
     perception = Perception()
     perception.target_color = ("red", "blue", "green")
     while True:
         img = my_camera.frame
         if img is not None:
             display_img = img.copy()
-            world_x, world_y = perception.get_block_location(display_img)
+            world_x, world_y, rotation_angle, color = perception.get_block_location(display_img)
             cv2.imshow('Frame', display_img)
             key = cv2.waitKey(1)
             if key == 27:

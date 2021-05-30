@@ -3,10 +3,12 @@
 import sys
 
 sys.path.append('/home/pi/ArmPi/')
+import cv2
 import time
 from ArmIK.Transform import getAngle
-from ArmIK.ArmMoveIK import ArmIK 
+from ArmIK.ArmMoveIK import ArmIK
 import HiwonderSDK.Board as Board
+import atexit
 
 class Motion:
     
@@ -24,6 +26,8 @@ class Motion:
         'blue':   (-15 + 0.5, 0 - 0.5,  1.5),
         'pallet': (-15 + 1, -7 - 0.5, 1.5),
         }
+
+        atexit.register(self.reset)
         
     def sort(self, block_x, block_y, block_rotation, block_color):
         
@@ -56,7 +60,7 @@ class Motion:
         
         self.reset()
         self.num_stacked += 1
-        self.num_stacked %= 2
+        self.num_stacked %= 3
 
     def pick(self, x, y, z, rotation):
         
@@ -110,6 +114,8 @@ class Motion:
         
     # return to default position
     def reset(self):
+        Board.setBusServoPulse(1, self.servo1 - 250, 300)
+        time.sleep(0.5)
         Board.setBusServoPulse(1, self.servo1 - 50, 300)
         time.sleep(0.5)
         Board.setBusServoPulse(2, 500, 500)
@@ -119,6 +125,13 @@ class Motion:
 def main():
     
     import sys
+    arg_info = "Requires 1 argument for action to take: pick from [sort, palletize]"
+    if len(sys.argv) != 2:
+        print(arg_info)
+        return
+    elif not sys.argv[1] in ["sort", "palletize"]:
+        print(arg_info)
+        return
     if sys.argv[1] != "palletize":
         sort = True
     else:
@@ -139,15 +152,16 @@ def main():
             display_img = img.copy()
             world_x, world_y, rotation_angle, color = p.get_block_location(display_img)
             cv2.imshow('Frame', display_img)
+            
+            key = cv2.waitKey(1)
+            if key == 27:
+                break
             if world_x is not None:
                 if sort:
                     motion.sort(world_x, world_y, rotation_angle, color)
                 else:
                     motion.palletize(world_x, world_y, rotation_angle)
-                
-            key = cv2.waitKey(1)
-            if key == 27:
-                break
+
     my_camera.camera_close()
     cv2.destroyAllWindows()
     

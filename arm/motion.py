@@ -64,19 +64,19 @@ class Motion:
 
     def pick(self, x, y, z, rotation):
         
-        servo2_angle = getAngle(x, y, rotation) #计算夹持器需要旋转的角度
-        Board.setBusServoPulse(1, self.servo1 - 280, 500)  # 爪子张开
+        servo2_angle = getAngle(x, y, rotation) 
+        Board.setBusServoPulse(1, self.servo1 - 280, 500) 
         Board.setBusServoPulse(2, servo2_angle, 500)
         time.sleep(0.5)
         
         self.AK.setPitchRangeMoving((x, y, z), -90, -90, 0, 1000)
         time.sleep(1.5)
 
-        Board.setBusServoPulse(1, self.servo1, 500)  #夹持器闭合
+        Board.setBusServoPulse(1, self.servo1, 500)
         time.sleep(0.8)
 
         Board.setBusServoPulse(2, 500, 500)
-        self.AK.setPitchRangeMoving((x, y, 12), -90, -90, 0, 1000)  #机械臂抬起
+        self.AK.setPitchRangeMoving((x, y, 12), -90, -90, 0, 1000) 
         time.sleep(1)
 
     def place(self, x, y, z, rotation=-90):
@@ -94,7 +94,7 @@ class Motion:
         self.AK.setPitchRangeMoving((x, y, z), -90, -90, 0, 1000)
         time.sleep(0.8)
 
-        Board.setBusServoPulse(1, self.servo1 - 200, 500)  # 爪子张开  ，放下物体
+        Board.setBusServoPulse(1, self.servo1 - 200, 500) 
         time.sleep(0.8)
 
         self.AK.setPitchRangeMoving((x, y, 12), -90, -90, 0, 800)
